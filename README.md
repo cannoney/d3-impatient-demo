@@ -1,6 +1,9 @@
 ## 项目说明
 本项目是参考图书[《快学熟用D3 for the impatient》](https://vufind.library.sh.cn/Record/47e4e6f7-2b90-4a8c-8667-a26bf65a47cd?ids=47e4e6f7-2b90-4a8c-8667-a26bf65a47cd)的示例代码的实现版，以此来熟悉和巩固语法应用。
 
+示例均为HTML，已通过`GitHub Pages`发布，可以直接查看[汇总页](https://cannoney.github.io/d3-impatient-demo/)。
+- 发布参考：https://www.cnblogs.com/zktww/p/18630127
+
 ## 官网及原书资料
 **官网：**
 
