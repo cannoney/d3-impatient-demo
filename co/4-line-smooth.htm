@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Demos for D3</title>
+	<link rel="stylesheet" type="text/css" href="../style/main.css">
+</head>
+<body onload="drawLine()">
+	<h2 class="title">顺滑双折线图</h2>
+</body>
+<script src="../js/d3.v7.js"></script>
+<script>
+	// 绘制两条折线 -- 公共部分提取出来
+	// 比例尺
+	const scaleMaker = (data, key, range) => {
+		// 线性比例尺：按比例缩放
+		return d3.scaleLinear()
+			//值域。 extent--返回数组的最大值和最小值
+			.domain(d3.extent(data, d => d[key]))
+			.range(range)
+	}
+	// 曲线生成器
+	const curveMaker = (type, accessX, accessY) => {
+		return d3.line().curve(type)
+			.x(accessX)
+			.y(accessY)
+	}
+	// 坐标轴
+	const makeAxis = (axis, svg, id, translate) => {
+		svg.append("g")
+			.attr("id", id)
+			.attr("transform", translate)
+			.call(axis)
+	}
+
+	// 绘制曲线和点
+	const makeLineAndPoint = (svg, id, data, line, point) => {
+		// 容器（折线和点作为一组）
+		let g =	svg.append("g")
+				.attr("id", id)
+				.attr("fill", point.color)
+
+		// 先绘制曲线
+		g.append("path")
+			.attr("fill", "none")
+			.attr("stroke", line.color)
+			.attr("d", line.draw(data))
+
+		// 再绘制节点
+		g.selectAll("circle")
+			.data(data).enter()
+			// 绘制圆点
+			.append("circle")
+				.attr("r", 5)
+				.attr("cx", point.x)
+				.attr("cy", point.y)
+	}
+
+	// 绘制顺滑折线图
+	function drawLine() {
+		let colors = ["red", "orange", "yellow", "green", "blue"]
+		// 加载制表符分割的数据文件。返回Promise对象
+		d3.tsv("../data/dot-multiple.tsv")
+			.then(data => {
+				// 画布大小
+				let width = 600, height = 300
+				// 预留边距 -- 保证图形完整
+				let margin = 35				
+
+				let scX = scaleMaker(data, "x", [margin, width - margin]),
+					scY1 = scaleMaker(data, "y1", [height - margin, margin]),
+					scY2 = scaleMaker(data, "y2", [height - margin, margin])
+
+				// 曲线生成器 -- 每个数据点的水平和垂直坐标
+				let curveMkr1 = curveMaker(d3.curveNatural, d => scX(d.x), d => scY1(d.y1)),
+					curveMkr2 = curveMaker(d3.curveStep, d => scX(d.x), d => scY2(d.y2))
+
+				// 创建画布
+				let svg = d3.select("body")
+					.append("svg")
+						.attr("width", width)
+						.attr("height", height)
+				//第一个曲线
+				makeLineAndPoint(svg, "ds1", data, 
+					{color: "red", draw: curveMkr1}, 
+					{color: "blue", x: d => scX(d.x), y: d => scY1(d.y1)})
+				//第二个曲线
+				makeLineAndPoint(svg, "ds2", data, 
+					{color: "orange", draw: curveMkr2}, 
+					{color: "green", x: d => scX(d.x), y: d => scY2(d.y2)})
+				
+
+				// 绘制坐标轴
+				// 纵坐标轴
+				makeAxis(d3.axisLeft(scY1), svg, "axY1", `translate(${margin}, 0)`)
+				makeAxis(d3.axisRight(scY2), svg, "axY2", `translate(${width - margin}, 0)`)
+				// 横坐标轴
+				makeAxis(d3.axisBottom(scX), svg, "axX", `translate(0, ${height - margin})`)
+			})
+	}
+</script>
+</html>

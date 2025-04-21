@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Demos for D3</title>
+	<link rel="stylesheet" type="text/css" href="../style/main.css">
+</head>
+<body onload="init()">
+	<h2 class="title">符号图形</h2>
+	<svg width="600" height="300">
+		<!-- 星星 -->
+		<g id="gs1"></g>
+		<!-- 序列映射 -->
+		<g id="gs2" transform="translate(300,0)"></g>
+		<!-- 所有符号 - fill -->
+		<g id="gs3" transform="translate(0,120)"></g>
+		<!-- 所有符号 - stroke -->
+		<g id="gs4" transform="translate(0,200)"></g>
+	</svg>
+</body>
+<script src="../js/d3.v7.js"></script>
+<script>
+	function init() {
+		let data = [ { "x":  40, "y":   0, "val": "A" }, 
+                 { "x":  80, "y":  30, "val": "A" },
+                 { "x": 120, "y": -10, "val": "B" },
+                 { "x": 160, "y":  15, "val": "A" },
+                 { "x": 200, "y":   0, "val": "C" },
+                 { "x": 240, "y":  10, "val": "B" } ];
+		//比例尺-对应符号坐标
+		let sc = d3.scaleLinear().domain([-10, 30]).range([80, 40])
+		//符号生成器
+		let symbolMkr = d3.symbol().size(81)
+
+		//绘制星星图标
+		let star = symbolMkr.type(d3.symbolStar)
+		//画布1 - path
+		d3.select("#gs1").selectAll("path").data(data).enter().append("path")
+			.attr("fill", "red")
+			.attr("d", star)
+			.attr("transform", d => `translate(${d.x}, ${sc(d.y)})`)
+
+		//ABC序列对应符号
+		let scType = d3.scaleOrdinal(d3.symbols).domain(["A", "B", "C"])
+		//画布2 - path
+		d3.select("#gs2").selectAll("path").data(data).enter().append("path")
+			.attr("fill", "none")
+			.attr("stroke", "blue").attr("stroke-width", 2)
+			.attr("d", d => symbolMkr.type(scType(d.val))() )
+			.attr("transform", d => `translate(${d.x}, ${sc(d.y)})`)
+
+
+		//7种符号
+		symbolMkr = d3.symbol().size(256)
+		//Fill
+		let srange = d3.range(7)
+		let scTypeAllFill = d3.scaleOrdinal(d3.symbolsFill).domain(srange)
+		//画布3 - path
+		d3.select("#gs3").selectAll("path").data(srange).enter().append("path")
+			.attr("fill", "purple")
+			.attr("d", (d, i) => symbolMkr.type(scTypeAllFill(i))() )
+			.attr("transform", (d, i) => `translate(${60*(i+1)}, 40)`)
+
+		//Stroke
+		let scTypeAllStroke = d3.scaleOrdinal(d3.symbolsStroke).domain(srange)
+		//画布4 - path
+		d3.select("#gs4").selectAll("path").data(srange).enter().append("path")
+			.attr("fill", "none")
+			.attr("stroke", "purple").attr("stroke-width", 2)
+			.attr("d", (d, i) => symbolMkr.type(scTypeAllStroke(i))() )
+			.attr("transform", (d, i) => `translate(${60*(i+1)}, 40)`)
+	}
+</script>
+</html>

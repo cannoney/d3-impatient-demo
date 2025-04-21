@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Demos for D3</title>
+	<link rel="stylesheet" type="text/css" href="../style/main.css">
+</head>
+<body onload="drawScatter()">
+	<h2 class="title">简单的散点</h2>
+	<svg id="dot-1" width="600" height="300" />
+</body>
+<script src="../js/d3.v7.js"></script>
+<script>
+	// 绘制散点
+	function drawScatter() {
+		let colors = ["red", "orange", "yellow", "green", "blue"]
+		// 加载制表符分割的数据文件。返回Promise对象
+		d3.tsv("../data/dot-simple.tsv")
+			.then(data => {
+				// 画布
+				d3.select("svg")
+					.selectAll("circle")
+					.data(data).enter()
+					// 绘制圆点
+					.append("circle")
+						// 不同圆点不同颜色
+						.attr("fill", (d, i) => colors[i])
+						.attr("r", 5)
+						.attr("cx", d => d["x"])
+						.attr("cy", d => d["y"])
+			})
+	}
+</script>
+</html>

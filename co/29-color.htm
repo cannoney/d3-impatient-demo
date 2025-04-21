@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Demos for D3</title>
+	<link rel="stylesheet" type="text/css" href="../style/main.css">
+</head>
+<body onload="init()">
+	<h2 class="title">彩色比例尺</h2>
+	<svg width="600" height="300">
+	</svg>
+</body>
+<script src="../js/d3.v7.js"></script>
+<script>
+	//参考：https://github.com/d3/d3-scale-chromatic
+	//https://basecase.org/env/on-rainbows
+	function init() {
+		//画布
+		let svg = d3.select("svg").append("g").attr("transform", "translate(150, 10)")
+
+		// #region 比例尺
+		//坐标轴比例尺
+		let scX = d3.scaleLinear().domain([0, 10]).range([0, 300])
+
+		//蓝白红渐变 - 默认补间操作
+		let sc1 = d3.scaleLinear().domain([0, 3, 10]).range(["blue", "white", "red"])
+		//有个十分明显过渡的渐变
+		let sc2 = d3.scaleLinear().domain([0, 5, 5, 10]).range(["white", "blue", "red", "white"])
+		//标准HSL彩虹
+		let sc3 = d3.scaleSequential(t => "" + d3.hsl(360*t, 1, 0.5)).domain([0, 10])
+		//更好的彩虹：内置的正弦补间操作 -- 反向遍历？
+		let sc4 = d3.scaleSequential(t => "" + d3.interpolateSinebow(2/3-3*t/4)).domain([0, 10])
+		//离散比例尺。内置红黄绿-反向。。 值域三个值，对应t=[0,0.5,1]
+		let sc5 = d3.scaleDiverging(t => "" + d3.interpolateRdYlGn(1-t)).domain([0, 2, 10])
+		//平滑的配色方案--多用于地形图，不用指定中间色
+		let sc6 = d3.scaleSequential(d3.interpolateRgbBasis([ "#b2d899", "#ffffbf", "#bf9966", "#ffffff" ])).domain([0, 10])
+
+		//组成一个数组。从上到下依次绘制
+		let scales = [sc1, sc2, sc3, sc4, sc5, sc6]
+		let n = scales.length, pad = 44
+		// #endregion
+
+		//绘制
+		scales.forEach((sc, idx) => {
+			let [width, height] = [300, 30]
+			//最值
+			let [minn, maxx] = d3.extent(sc.domain())
+			let bars = d3.range(minn, maxx, (maxx - minn) / width)
+			//console.log(width, height, minn, maxx, bars)
+
+			//再定义一个比例尺
+			let scDomain = d3.scaleLinear().domain([minn, maxx]).range([0, width])
+
+			let gsc = svg.append("g")
+				.attr("transform", `translate(0, ${idx * pad})`)
+
+			gsc.selectAll("line").data(bars).enter().append("line")
+				.attr("x1", scDomain).attr("y1", 0)
+				.attr("x2", scDomain).attr("y2", height)
+				.attr("stroke", sc)
+
+			//矩形框
+			gsc.append("rect")
+				.attr("width", width).attr("height", height)
+				.attr("fill", "none").attr("stroke", "black")
+
+		})
+
+
+		//坐标轴
+		svg.append("g")
+			.attr("transform", `translate(0, ${n * pad})`)
+			.call(d3.axisBottom(scX))
+		
+	}
+</script>
+</html>

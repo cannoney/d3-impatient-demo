@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Demos for D3</title>
+	<link rel="stylesheet" type="text/css" href="../style/main.css">
+</head>
+<body onload="init()">
+	<h2 class="title">树形图：显示节点名称</h2>
+	<svg width="1400" height="300">
+	</svg>
+</body>
+<script src="../js/d3.v7.js"></script>
+<script>
+	async function init() {
+		//加载数据
+		let res = await d3.json("../data/filesys.json")
+		//树形节点
+		let nodes = d3.hierarchy(res, d => d.kids)
+		d3.tree().nodeSize([60, 60]) (nodes)
+
+		//绘制
+		let g = d3.select("svg").append("g")
+			.attr("transform", "translate(625, 30)")
+
+		//连接线 -- 直线
+		//console.log(nodes.links())
+		g.append("g").attr("id", "link")
+			.selectAll("line").data(nodes.links()).enter().append("line")
+				.attr("stroke", "red")
+				.attr("x1", d => d.source.x).attr("y1", d => d.source.y)
+				.attr("x2", d => d.target.x).attr("y2", d => d.target.y)
+
+		//节点
+		let allNodes = nodes.descendants()
+		g.append("g").attr("id", "node")
+			.selectAll("circle").data(allNodes).enter().append("circle")
+				.attr("r", "15")
+				.attr("fill", "lightgreen")
+				.attr("cx", d => d.x).attr("cy", d => d.y)
+
+		//文本
+		g.append("g").attr("id", "txt")
+			.selectAll("text").data(allNodes).enter().append("text")
+				.style("font-size", 12)
+				.style("text-anchor", "middle")
+				.attr("x", d => d.x).attr("y", d => d.y + 2)
+				.text(d => d.data.name)
+	}
+</script>
+</html>

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Demos for D3</title>
+	<link rel="stylesheet" type="text/css" href="../style/main.css">
+</head>
+<body onload="init()">
+	<h2 class="title">直方图。分位数组+分位比例尺</h2>
+	<svg width="600" height="300">
+	</svg>
+</body>
+<script src="../js/d3.v7.js"></script>
+<script>
+	async function init() {
+		//histogram参考：https://github.com/d3/d3-array/blob/be0ae0d2b36ab91b833294ad2cfc5d5905acbd0f/src/bin.js#L15
+		//加载数据:col=ABC
+		let data = await d3.csv("../data/dense.csv")
+
+		//#region 问题：首尾区间与原书不同！！！
+		//测试：只取A列数据。注意得转成数字
+		let arr = data.map(d => +d.A)
+		//min=10; max=290。。差异点：
+		//当前（V7） 第一个区间是[0,20]  最后一个区间是[280,300]  <-- [x0, x1] = nice(x0, x1, tn) --> min=0;max=300		
+		let [x0, x1] = d3.extent(arr)
+		//https://d3js.org/d3-array/bin#bin_thresholds
+		let tz = d3.bin().thresholds()(arr, x0, x1)
+		//输出结果：10 290 10 (2) [0, 300]
+		console.log('check: ', x0, x1, tz, d3.nice(x0, x1, +tz))
+		//原书示例(V5)，第一个区间是[10,20]  最后一个区间是[280,290]
+		//#endregion
+
+		//转化为直方图数据。。 
+		let histo = d3.histogram().value( d=>+d.A )( data )		
+
+		//柱高
+		let barHeight = 200
+
+		//比例尺
+		//X=分位比例尺：https://d3js.org/d3-scale/band#scaleBand
+		let scX = d3.scaleBand()
+			.padding(0.2).round(true)
+			.domain(histo).range([15, 515])
+		let scY = d3.scaleLinear()
+			.domain([0, d3.max(histo, d => d.length)]).nice()
+			.range([barHeight, 0])
+
+		//画布
+		let g = d3.select("svg")
+			.append("g").attr("transform", "translate(50, 50)")
+
+		//柱宽
+		let barWidth = scX.bandwidth()
+
+		//柱状图
+		g.append("g").attr("id", "bar")
+			.selectAll("rect").data(histo).enter().append("rect")
+				.attr("fill", "red").attr("fill-opacity", 0.2)
+				.attr("stroke", "red").attr("stroke-width", 2)
+				.attr("width", barWidth).attr("height", d => barHeight - scY(d.length))
+				.attr("x", scX).attr("y", d=> scY(d.length))
+
+		//X轴 无刻度。只显示数字文本
+		g.append("g").attr("id", "ax")
+			.selectAll("text").data(histo).enter().append("text")
+			.classed("label", true)
+			.attr("x", d => scX(d) + barWidth / 2).attr("y", barHeight + 25)
+			.text(d => (d.x0 + d.x1) / 2)
+		//Y轴
+		g.append("g").attr("id", "ay")
+			.call(d3.axisLeft(scY))
+	}
+</script>
+</html>

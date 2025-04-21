@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Demos for D3</title>
+	<link rel="stylesheet" type="text/css" href="../style/main.css">
+</head>
+<body onload="init()">
+	<h2 class="title">树形图：径向布局</h2>
+	<svg width="600" height="300">
+	</svg>
+</body>
+<script src="../js/d3.v7.js"></script>
+<script>
+	async function init() {
+		//加载数据
+		let res = await d3.json("../data/filesys.json")
+		//树形节点
+		let nodes = d3.hierarchy(res, d => d.kids)
+			.sort((a, b) => b.height - a.height)
+		d3.cluster().size([2 * Math.PI, 125]) (nodes)
+
+		//转换坐标的函数
+		let hf = (r, pi) => r * Math.sin(pi)
+		let vf = (r, pi) => -r * Math.cos(pi)
+
+		//绘制
+		let g = d3.select("svg").append("g")
+			.attr("transform", "translate(300, 150)")
+
+		//连接线
+		let linkMkr = d3.linkRadial()
+			.angle(d => d.x)
+			.radius(d => d.y)
+		g.append("g").attr("id", "link")
+			.selectAll("path").data(nodes.links()).enter().append("path")
+				.attr("fill", "none")
+				.attr("stroke", "red")
+				.attr("d", linkMkr)
+		//节点
+		g.append("g").attr("id", "node")
+			.selectAll("circle").data(nodes.descendants()).enter().append("circle")
+				.attr("r", "5")
+				.attr("fill", "black")
+				.attr("cx", d => hf(d.y, d.x)).attr("cy", d => vf(d.y, d.x))
+	}
+</script>
+</html>

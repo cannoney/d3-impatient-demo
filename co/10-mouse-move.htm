@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Demos for D3</title>
+	<link rel="stylesheet" type="text/css" href="../style/main.css">
+</head>
+<body onload="showMouse()">
+	<h2 class="title">移动鼠标时显示位置</h2>
+	<svg width="600" height="300" />
+</body>
+<script src="../js/d3.v7.js"></script>
+<script>
+	function showMouse() {
+		let svg = d3.select("svg")
+			.attr("cursor", "crosshair")
+
+		let txt = svg.append("text")
+
+		//鼠标移动事件
+		svg.on("mousemove", (evt) => {
+			//mouse-->pointer
+			//当前坐标：https://d3js.org/d3-selection/events#pointer
+			let [x, y] = d3.pointer(evt)
+			txt.attr("x", 18 + x)
+				.attr("y", 12 + y)
+				.text(`x=${x} y=${y}`)
+
+		})
+
+		//todo: 如何移动到指定位置？
+		svg.dispatch("mousemove") //, {clientX: 110, clientY: 20})
+	}
+</script>
+</html>

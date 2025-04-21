@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Demos for D3</title>
+	<link rel="stylesheet" type="text/css" href="../style/main.css">
+</head>
+<body onload="init()">
+	<h2 class="title">内置曲线示例</h2>
+	<svg width="1400" height="300">
+		
+	</svg>
+</body>
+<script src="../js/d3.v7.js"></script>
+<script>
+	function init() {
+		//数据
+		let data = [[1,1], [2,2], [2.5,4], [3,4], [4,2], [4.5,2.5], [5,1.5]]
+		//比例尺
+		let scX = d3.scaleLinear().domain([1,5]).range([50,180])
+		let scY = d3.scaleLinear().domain([0,4.5]).range([120,5])
+		//直接计算按比例处理后的坐标点
+		data = data.map(d => [ scX(d[0]),scY(d[1]) ])
+		//文本位置
+		let txtPos = [ scX(3), scY(0) ]		
+
+		//各种曲线
+		let curves = ["curveLinear", "curveLinearClosed", "curveNatural", "curveMonotoneX", "curveMonotoneY", "curveBasis"
+			, "curveStep", "curveStepAfter", "curveStepBefore", "curveCardinal", "curveCatmullRom", "curveBundle"]
+		//可调参数
+		let dict = {"curveCardinal": "tension", "curveCatmullRom": "alpha", "curveBundle": "beta"}
+
+		//绘制折线图
+		//画布
+		svg = d3.select("svg")
+
+		curves.forEach((d, i) => drawCurve(svg, i, d, data, txtPos, dict[d]))
+	}
+
+	//绘制曲线
+	function drawCurve(el, idx, key, data, txtPos, param) {
+		let col = 6
+		//平移
+		let x = (idx % col) * 220, y = Math.floor(idx / col) * 150
+		//容器
+		let cnt = el.append("g")
+			.attr("id", "c" + idx).attr("transform", `translate(${x},${y})`)
+
+
+		//带参数的曲线设置
+		let vs = [ 1, 0.75, 0.5, 0.25, 0 ]
+		let sc = d3.scaleLinear().domain( [0, 2, 4] ).range( ["red", "magenta", "blue"] )
+
+		//线
+		//直线生成器
+		let lineEl = cnt.append("g")
+		let makers = [d3.line().curve(d3[key])]
+		if (param) {
+			makers = vs.map(v => {
+				//d3.line().curve(d3.curveCardinal.tension(0.5))
+				let type = d3[key][param](v)
+				return d3.line().curve(type)
+			})
+		}
+		makers.forEach((d, i) => {
+			lineEl.append("path")
+				.attr("fill", "none").attr("stroke", sc(i))
+				.attr("d", d(data))
+		})
+		
+
+		//圆点
+		cnt.append("g")
+			.selectAll("circle").data(data).enter().append("circle")
+			.attr("r", 3)
+			.attr("cx", d => d[0]).attr("cy", d => d[1])
+
+		//文本标题
+		cnt.append( "text" )
+			.attr( "x", txtPos[0] ).attr( "y", txtPos[1] )
+			.attr( "text-anchor", "middle" )
+		        .attr( "font-family", "sans-serif").attr( "font-size", "10.5pt" )
+			.text( "d3." + key )
+	}
+</script>
+</html>

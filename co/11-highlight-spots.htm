@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Demos for D3</title>
+	<link rel="stylesheet" type="text/css" href="../style/main.css">
+</head>
+<body onload="init()">
+	<h2 class="title">联动高亮数据源</h2>
+	<svg width="630" height="300">
+		<g id="ds1"></g>
+		<g id="ds2" transform="translate(300,0)"></g>
+	</svg>
+</body>
+<script src="../js/d3.v7.js"></script>
+<script>
+	//绘制散点
+	const drawPots = (el, data, key, scale) => {
+		return el.selectAll("circle")
+					.data(data).enter()
+					.append("circle")
+						.attr("r", 5)
+						.attr("fill-opacity", 0.4)
+						.attr("fill", scale(Infinity))
+						.attr("cx", d => d.A)
+						.attr("cy", d => d[key])
+	}
+	function init() {
+		// 加载csv文件。返回Promise对象
+		d3.csv("../data/dense.csv")
+			.then(data => {
+				// 线性比例尺
+				let sc1 = d3.scaleLinear()
+					.domain([0, 10, 50])
+					.range(["lime", "yellow", "red"])
+				let sc2 = d3.scaleLinear()
+					.domain([0, 10, 50])
+					.range(["lime", "yellow", "blue"])
+
+				// 创建画布
+				let svg = d3.select("svg")
+				let ds1 = svg.select("#ds1")
+				let ds2 = svg.select("#ds2")
+
+				let cs1 = drawPots(ds1, data, "B", sc1)
+				let cs2 = drawPots(ds2, data, "C", sc2)
+
+
+				//自定义光标
+				svg.attr("cursor", "none")
+				let cursor = svg.append("circle")
+					.attr("r", 50)
+					.attr("fill", "none")
+					.attr("stroke", "black")
+					.attr("stroke-width", 10)
+					.attr("stroke-opacity", 0.1)
+					.attr("visibility", "hidden")
+				//指定热点区域
+				let hotzone = svg.append("rect")
+					.attr("x", 0)
+					.attr("y", 0)
+					.attr("width", 300)
+					.attr("height", 300)
+					.attr("visibility", "hidden")
+					.attr("pointer-events", "all")
+				//绑定事件
+				hotzone.attr("cursor", "none")
+					//鼠标进入：显示光标
+					.on("mouseenter", () => {
+						//svg.attr("cursor", "crosshair")
+						cursor.attr("visibility", "visible")
+					})
+					//鼠标移出：隐藏光标；重置视图颜色
+					.on("mouseleave", () => {
+						cursor.attr("visibility", "hidden")
+						cs1.attr("fill", sc1(Infinity))
+						cs2.attr("fill", sc2(Infinity))
+					})
+					//鼠标移动：高亮显示
+					.on("mousemove", function(evt) {						
+						let [x, y] = d3.pointer(evt)
+						cursor.attr("cx", x).attr("cy", y)		
+
+						cs1.attr("fill", function (d, i) {
+							let self = d3.select(this)
+
+							// 计算圆点到鼠标指针的距离
+							let dx = x - self.attr("cx")
+							let dy = y - self.attr("cy")
+
+							// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/hypot
+							// eg: Math.hypot(3,4) = 5
+							let r = Math.hypot(dx, dy)
+
+							//新数据存入data
+							data[i]["r"] = r
+
+							//返回原点的颜色
+							return sc1(r)
+						})
+
+						// 更新另一个视图
+						cs2.attr("fill", (d, i) => sc2(data[i]["r"]) ) 
+					})
+
+							
+			})
+	}
+</script>
+</html>

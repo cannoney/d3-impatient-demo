@@ -1,0 +1,22 @@
+<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <!-- 核心9点 -->
+  <g transform="translate(12 12)">
+    <circle cx="8" cy="8" r="5" fill="#FF6B6B"/>
+    <circle cx="28" cy="8" r="3" fill="#FF6B6B" opacity="0.8"/>
+    <circle cx="48" cy="8" r="5" fill="#FF6B6B"/>
+    <circle cx="8" cy="28" r="4" fill="#FF6B6B" opacity="0.9"/>
+    <circle cx="28" cy="28" r="6" fill="#FF6B6B"/>
+    <circle cx="48" cy="28" r="4" fill="#FF6B6B" opacity="0.9"/>
+    <circle cx="8" cy="48" r="5" fill="#FF6B6B"/>
+    <circle cx="28" cy="48" r="3" fill="#FF6B6B" opacity="0.8"/>
+    <circle cx="48" cy="48" r="5" fill="#FF6B6B"/>
+  </g>
+  
+  <!-- 动态粒子 -->
+  <g opacity="0.3">
+    <circle cx="5" cy="20" r="1.2" fill="#4ECDC4"/>
+    <circle cx="59" cy="44" r="1.5" fill="#4ECDC4"/>
+    <circle cx="35" cy="5" r="1" fill="#4ECDC4"/>
+    <!-- 共12个粒子点... -->
+  </g>
+</svg>

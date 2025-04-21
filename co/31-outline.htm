@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Demos for D3</title>
+	<link rel="stylesheet" type="text/css" href="../style/main.css">
+</head>
+<body onload="init()">
+	<h2 class="title">轮廓线。适用平滑改变的数据。如等高线</h2>
+	<svg width="600" height="300">
+	</svg>
+</body>
+<script src="../js/d3.v7.js"></script>
+<script>
+	async function init() {
+		//加载数据：配色方案。格式：{colors:[]}
+		//对象解构赋值
+		let {colors} = await d3.json("../data/haxby.json")
+		//console.log(colors)
+
+		//画布大小
+		let pxX = 500, pxY = 270;
+
+		//比例尺
+		//像素坐标，映射到平面位置
+		let scX = d3.scaleLinear().domain([-3, 1]).range([0, pxX]),
+			scY = d3.scaleLinear().domain([-1.5, 1.5]).range([pxY, 0])
+		//映射颜色 - 轮廓线的颜色
+		let scC = d3.scaleSequential(d3.interpolateRgbBasis(colors)).domain([-1,1])		
+		let	scZ = d3.scaleLinear().domain([-1, -0.25, 0.25, 1])
+				.range( ["white", "grey", "grey", "black"] );
+
+		//生成数据
+		const fc = (x, y, b) => (y**4 + x*y**2 + b*y) * Math.exp(-(y**2))
+		let data = []
+		//双循环遍历每个像素点
+		for( let j=0; j<pxY; j++ ) {
+			for( let i=0; i<pxX; i++ ) {
+				data.push(fc(scX.invert(i), scY.invert(j), 0.3))
+			}
+		}
+
+		//画布
+		let svg = d3.select("svg")
+		let g = svg.append("g").attr("id", "contour")
+			.attr("transform", "translate(30, 10)")
+		
+		//#region 绘制轮廓线
+		//地理坐标
+		let pathMkr = d3.geoPath()
+		let conMkr = d3.contours().size([pxX, pxY])
+		//填充区域
+		let con1 = conMkr.thresholds(100)
+		g.append("g").attr("id", "filled")
+			.selectAll("path").data(con1(data)).enter().append("path")
+				.attr("d", pathMkr)
+				.attr("fill", d => scC(d.value))
+				.attr("stroke", "none")
+
+		//轮廓线 -- 等高线
+		let con2 = conMkr.thresholds(10)
+		g.append("g").attr("id", "line")
+			.selectAll("path").data(con2(data)).enter().append("path")
+				.attr("d", pathMkr)
+				.attr("fill", "none")
+				.attr("stroke", d => scZ(d.value))
+
+		//特定阈值的单一轮廓
+		//console.log(g.select("g").attr("id"))
+		g.append("g").attr("id", "redline")
+		//选择到填充区域的容器，隐藏了四周边界的轮廓线
+		g.select("g")
+			.append("path")
+				.attr("d", pathMkr( con2.contour(data, 0.025) ))
+				.attr("fill", "none")
+				.attr("stroke", "red").attr("stroke-width", 2)
+
+		//坐标轴
+		let gaxis = g.append("g").attr("id", "axis")
+		gaxis.append("g").attr("id", "ax")
+			.attr("transform", `translate(0, ${pxY})`)
+			.call(d3.axisBottom(scX).ticks(10))
+			.call(hightlight)
+		gaxis.append("g").attr("id", "ay")
+			.call(d3.axisLeft(scY).ticks(5))
+			.call(hightlight)
+		//#endregion
+
+		//颜色图例
+		let scEx = d3.scaleLinear().domain([-1, 1]).range([250, 0])
+		let gex = g.append("g").attr("id", "ex")
+			.attr("transform", "translate(511, 8)")
+		//图例坐标
+		gex.append("g").attr("id", "ay-ex")
+			.attr("transform", "translate(30, 0)")
+			.call(d3.axisRight(scEx))
+			.call(hightlight)
+		//图例颜色比例尺
+		gex.append("g").attr("id", "color-ex")
+			//带上坐标系一起旋转了！！！ 所以是沿x轴向下移动
+			.attr("transform", "rotate(-90) translate(-250, 0)")
+			.call(colorbox, [250, 30], scC)
+	}
+
+	//坐标轴有正有负，高亮原点吧
+	function hightlight(el) {
+		el.selectAll("text")
+				.filter((d,i) => d == 0)
+				.style("color", "#f0f")
+				.style("font-weight", "bolder")
+	}
+
+	//彩色比例尺
+	function colorbox(el, size, sc) {
+		let [width, height] = size
+		//最值
+		let [minn, maxx] = d3.extent(sc.domain())
+		let bars = d3.range(minn, maxx, (maxx - minn) / width)
+
+		//再定义一个比例尺
+		let scDomain = d3.scaleLinear().domain([minn, maxx]).range([0, width])
+
+		el.selectAll("line").data(bars).enter().append("line")
+			.attr("x1", scDomain).attr("y1", 0)
+			.attr("x2", scDomain).attr("y2", height)
+			.attr("stroke", sc)
+
+		//矩形框
+		el.append("rect")
+			.attr("width", width).attr("height", height)
+			.attr("fill", "none").attr("stroke", "black")
+	}
+</script>
+</html>

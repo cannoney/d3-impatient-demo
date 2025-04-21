@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Demos for D3</title>
+	<link rel="stylesheet" type="text/css" href="../style/main.css">
+</head>
+<body onload="init()">
+	<h2 class="title">补间过渡动画示例</h2>
+	<svg width="1400" height="300">
+		<!-- 字符串 -->
+		<g id="ds-str" fill="green">
+			<text id="t1" x="60" y="130" fill-opacity="1">Hello</text>
+			<text id="t2" x="60" y="130" fill-opacity="0">World</text>
+		</g>
+		<!-- 链式 -->
+		<g id="ds-link" transform="translate(150,0)">
+			<text id="t1" x="30" y="130">A</text>
+			<text id="t2" x="50" y="130">B</text>
+		</g>
+		<!-- 自定义：变色 -->
+		<g id="ds-cm" transform="translate(300,0)">
+			<circle r="30" cx="20" cy="120" fill="red"/>
+			<circle r="30" cx="100" cy="120" fill="green"/>
+			<circle r="30" cx="180" cy="120" fill="blue"/>
+		</g>
+		<!-- 自定义：旋转 -->
+		<g id="ds-rot" transform="translate(600,0)">
+			<rect rx="10" width="120" height="120" x="60" y="60" fill="violet"/>
+		</g>
+	</svg>
+</body>
+<script src="../js/d3.v7.js"></script>
+<script>
+	function init() {
+		//字符串 -- 相同位置的两个文本交叉淡入淡出
+		d3.select("#t1").transition().attr("fill-opacity", 0)
+		d3.select("#t2").transition().attr("fill-opacity", 1)
+		// d3.select("#ds-str").selectAll("text")
+		// 	.transition()
+		// 	.attr("fill-opacity", (d, i, ns) => +ns[i].getAttribute("fill-opacity") ^ 1)
+
+		//链式调用：多个效果：先变红色再变蓝色。。公用持续时间和延迟
+		d3.select("#ds-link").selectAll("text")
+			.transition().duration(2000).delay((d, i) => i * 500).attr("fill", "red")
+			.transition().attr("fill", "blue")
+
+		//自定义补间函数：更改颜色
+		d3.select("#ds-cm").selectAll("circle")
+			.transition().duration(2000).delay(1000).ease(t => t)
+			.attrTween("fill", function(d, i) {
+				//t=[0,1]
+				return t => `hsl(${120*t*(i+1)}, 100%, 50%)`
+			})
+
+		//自定义补间动画：中心旋转
+		//宽高和坐标有要求，保证中心位置是(120, 120)，也就是rotate的后两个参数
+		// rotate([angle] [px,py]) == https://developer.mozilla.org/en-US/docs/Web/SVG/Reference/Attribute/transform#rotate
+		//https://www.zhangxinxu.com/wordpress/2015/10/understand-svg-transform/
+		d3.select("#ds-rot").selectAll("rect")
+			.transition().duration(2000).ease(t => t)
+			.attrTween("transform", function () {
+				return t => `rotate(${360*t}, 120, 120)`
+			})
+
+	}
+</script>
+</html>

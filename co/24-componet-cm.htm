@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Demos for D3</title>
+	<link rel="stylesheet" type="text/css" href="../style/main.css">
+</head>
+<body onload="init()">
+	<h2 class="title">自定义组件：带边框的文本标签</h2>
+	<svg width="600" height="300">
+	</svg>
+</body>
+<script src="../js/d3.v7.js"></script>
+<script>
+	function init() {
+		//一组文本
+		let labels = [ "Hello", "World", "How", "Are", "You?" ]
+		let n = labels.length
+		//比例尺：线性向下。（左上到右下）
+		let scX = d3.scaleLinear()
+			.domain([0, n-1]).range([100, 500])
+		let scY = d3.scaleLinear()
+			.domain([0, n-1]).range([60, 200])
+
+		//绘制
+		let svg = d3.select("svg")
+		//d=>d 作为文本参数
+		svg.selectAll("g").data(labels).enter().append("g")
+			.attr("transform", (d,i) => `translate(${scX(i)}, ${scY(i)})`)
+			//调用组件方法：选择集作为参数
+			.call(sticker)
+
+		//显式指定文本
+		svg.append("g")
+			//.attr("transform", "translate(95, 180)")
+			.call(moveTo, 95, 180)
+			.call(sticker, "Fine, 3Q!")
+			//更新颜色
+			.selectAll(".label").attr("fill", "red")
+
+		//多个平移
+		let data = ["One", "Two"]
+		svg.append("g")
+			.selectAll("g").data(data).enter().append("g")
+			.call(moveTo, (d, i) => 300 + scX(i), (d, i) => scY(i))
+			.call(sticker)
+			.select(".frame").attr("stroke", "green")
+	}
+	//组件
+	/**
+	 * 文本标签
+	 * @el 容器
+	 * @label 文本
+	 */
+	function sticker(el, label) {
+		//console.log(arguments)
+		//圆角矩形
+		el.append("rect")
+			.attr("rx", 5).attr("ry", 5)
+			.attr("width", 70).attr("height", 35)
+			.attr("x", -35).attr("y", -15)
+			.attr("fill", "none").attr("stroke", "blue")
+			//添加类名
+			.classed("frame", true)
+
+		//文本
+		//垂直居中：14px=height=20。 offset.y=(rh-th)/2
+		el.append("text")
+			.attr("x", 0).attr("y", 7)
+			.classed("label", true)
+			//不理解？？ dd
+			.text(label ? label : d => d)
+	}
+	/**
+	 * 平移
+	 * @el 容器
+	 * @xy 坐标
+	 */
+	function moveTo(el, x, y) {
+		// why need a return ?? 方便链式调用吗？ 去掉也能正常用呀？
+		//这种写法不适用选择集数据，x传参为 d => scX(d)
+		// console.log(arguments)
+		// return el.attr("transform", (d,i) => `translate(${x}, ${y})`)
+
+		// //哈希映射（key=el,value=x|y）
+		// let dx = d3.local(), dy = d3.local()
+		// el.each(function(d,i) {
+		// 	dx.set(this, typeof x === "function" ? x(d,i) : x||0)
+		// 	dy.set(this, typeof y === "function" ? y(d,i) : y||0)
+		// })
+		// return el.attr("transform", function() {
+		// 	return `translate(${dx.get(this)}, ${dy.get(this)})`
+		// })
+
+		//不需要存储。直接在attr的属性函数中计算下就行了。多个数据内部会逐个调用的，无需each
+		return el.attr("transform", function(d, i) {
+			let dx = typeof x === "function" ? x(d,i) : x||0
+			let dy = typeof y === "function" ? y(d,i) : y||0
+			return `translate(${dx}, ${dy})`
+		})
+	}
+</script>
+</html>

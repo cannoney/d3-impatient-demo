@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Demos for D3</title>
+	<link rel="stylesheet" type="text/css" href="../style/main.css">
+</head>
+<body onload="init()">
+	<h2 class="title">不连续的折线图=标记false</h2>
+	<svg width="600" height="300">
+	</svg>
+</body>
+<script src="../js/d3.v7.js"></script>
+<script>
+	function init() {
+		//数据
+		let data = [ [1, 1], [2, 2], [3, 4], [4, 4], [5, 2],
+               [6, 2], [7, 3], [8, 1], [9, 2] ]
+		//比例尺
+		let scX = d3.scaleLinear().domain([1,9]).range([80, 350])
+		let scY = d3.scaleLinear().domain([0,5]).range([200,50])
+		//直接计算按比例处理后的坐标点
+		data = data.map(d => [ scX(d[0]),scY(d[1]) ])
+
+		//绘制折线图
+		//画布
+		svg = d3.select("svg")
+		//线
+		//直线生成器 - 将第四个点标记为undefined，形成断点(返回false即可)
+		let lineMkr = d3.line().defined((d,i) => i != 3)
+		svg.append("g").attr("id", "line")
+			.append("path")
+			.attr("fill", "none").attr("stroke", "red")
+			.attr("d", lineMkr(data))
+
+		//圆点
+		svg.append("g").attr("id", "pots")
+			.selectAll("circle").data(data).enter().append("circle")
+			.attr("r", 3)
+			.attr("cx", d => d[0]).attr("cy", d => d[1])
+	}
+</script>
+</html>

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Demos for D3</title>
+	<link rel="stylesheet" type="text/css" href="../style/main.css">
+</head>
+<body onload="shareSelection()">
+	<h2 class="title">共享数据集：偶红奇蓝</h2>
+	<div class="col-2">
+		<div>
+			<h3> <i class="code">d3.selectAll("tr").selectAll("td")</i> => i为单元格所在列</h3>
+			<table id="tbl1">
+				<tr><td>1</td><td>A</td><td>B</td></tr>
+				<tr><td>2</td><td>C</td><td>D</td></tr>
+			</table>
+		</div>
+
+		<div>
+			<h3> <i class="code">d3.selectAll("td")</i> => i为所有单元格的索引 </h3>
+			<table id="tbl2">
+				<tr><td>1</td><td>A</td><td>B</td></tr>
+				<tr><td>2</td><td>C</td><td>D</td></tr>
+			</table>
+		</div>
+	</div>
+</body>
+<script src="../js/d3.v7.js"></script>
+<script>
+	function shareSelection() {
+		//参考：https://bost.ocks.org/mike/nest/
+		//https://bost.ocks.org/mike/selection/
+
+		//父节点是行。。012 012。 ns是行内的元素
+		d3.selectAll("#tbl1 tr")
+			.selectAll("td")
+				.style("color", (d, i, ns) => {
+					// console.log('tr td', d, i, ns)
+					return i % 2 == 0 ? "red" : "blue"
+				})
+		//无父节点。。012345。 ns是所有td的元素
+		d3.selectAll("#tbl2 td")
+				.style("color", (d, i, ns) => {
+					// console.log('td', d, i, ns)
+					return i % 2 == 0 ? "red" : "blue"
+				})
+	}
+</script>
+</html>

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Demos for D3</title>
+	<link rel="stylesheet" type="text/css" href="../style/main.css">
+</head>
+<body onload="init()">
+	<h2 class="title">自定义刻度符号</h2>
+	<svg width="600" height="300">
+	</svg>
+</body>
+<script src="../js/d3.v7.js"></script>
+<script>
+	function init() {
+		//画布
+		let svg = d3.select("svg")
+		
+		//刻度
+		let sc = d3.scaleLinear().domain([0 , 10]).range([0, 200])
+
+		//左上：默认配置
+		svg.append("g")
+			.attr("transform", "translate(50, 50)")
+			.call(d3.axisBottom(sc))
+
+		//左下：刻度显示一位小数，并只显示偶数项
+		svg.append("g")
+			.attr("transform", "translate(50, 125)")
+			.call(d3.axisBottom(sc).tickFormat( d3.format(".1f") ))
+			//隐藏奇数项
+			.selectAll("text")
+				.filter((d,i) => i%2 != 0)
+				.attr("visibility", "hidden")
+
+		//右上：显示长短刻度。得绘制两次
+		let g3 = svg.append("g")
+			.attr("transform", "translate(350, 50)")
+		//短刻度
+		g3.append("g").attr("id", "short")
+			.call(d3.axisBottom(sc).tickSize(3).tickFormat(() => ""))
+		//长刻度
+		g3.append("g").attr("id", "long")
+			.call(d3.axisBottom(sc).ticks(2))
+		//文本标签
+		g3.append("g").attr("id", "label")
+			.append("text").text("Metric")
+				.attr("x", sc(5)).attr("y", 35)
+				.classed("label", true)
+
+		//右下：自定义外观
+		let g4 = svg.append("g")
+			.attr("transform", "translate(350, 125)")
+			//刻度线与文本的间距
+			.call(d3.axisBottom(sc).tickPadding(10))
+		//隐藏刻度线上的横条
+		g4.select(".domain").attr("visibility", "hidden")
+		//更改刻度线上的竖条的样式
+		g4.selectAll(".tick").select("line")
+			.attr("stroke", "red").attr("stroke-width", 2)
+		//调大字体
+		g4.selectAll("text").attr("font-size", "16")
+	}
+</script>
+</html>

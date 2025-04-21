@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Demos for D3</title>
+	<link rel="stylesheet" type="text/css" href="../style/main.css">
+</head>
+<body onload="init()">
+	<h2 class="title">树形图</h2>
+	<svg width="600" height="300">
+	</svg>
+</body>
+<script src="../js/d3.v7.js"></script>
+<script>
+	async function init() {
+		//加载数据
+		let res = await d3.json("../data/filesys.json")
+		//树形节点
+		let array = getNodes(res)
+		//文本
+		let txts = ["d3.tree", "d3.cluster"]
+
+		//绘制
+		let svg = d3.select("svg")
+		array.forEach((nodes, i) => {
+			let g = svg.append("g")
+				.attr("transform", `translate(${15 + i * 300}, 25)`)
+
+			//连接线
+			let linkMkr = d3.linkVertical()
+				.x(d => d.x).y(d => d.y)
+			g.append("g").attr("id", "link")
+				.selectAll("path").data(nodes.links()).enter().append("path")
+					.attr("fill", "none")
+					.attr("stroke", "red")
+					.attr("d", linkMkr)
+			//节点
+			g.append("g").attr("id", "node")
+				.selectAll("circle").data(nodes.descendants()).enter().append("circle")
+					.attr("r", "5")
+					.attr("fill", "black")
+					.attr("cx", d => d.x).attr("cy", d => d.y)
+			//备注
+			g.append("text")
+				.classed("label", true)
+				.attr("x", 150).attr("y", 255)
+				.attr("fill", "#f0f")
+				.text(txts[i])
+		})
+	}
+	//节点
+	function getNodes(json) {
+		return [getTreeNodes(json), getClusterNodes(json)]
+	}
+
+	//普通树形节点
+	function getTreeNodes(json) {
+		//转为层级结构
+		let nodes = d3.hierarchy(json, d => d.kids)
+		//创建树形结构。每个节点添加位置信息
+		d3.tree().size([280, 225])(nodes)
+		return nodes
+	}
+	//集群结构
+	function getClusterNodes(json) {
+		let nodes = d3.hierarchy(json, d => d.kids)
+			.sort((a, b) => b.height - a.height)
+		d3.cluster().size([280, 225])(nodes)
+		return nodes
+	}
+</script>
+</html>

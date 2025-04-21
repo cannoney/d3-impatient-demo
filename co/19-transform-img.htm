@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Demos for D3</title>
+	<link rel="stylesheet" type="text/css" href="../style/main.css">
+</head>
+<body>
+	<h2 class="title">缩放变换：坐标、宽高、描边宽度等同时缩放</h2>
+	<svg id="surprise" width="1400" height="300">
+
+		<!-- 两个缩放图 -->
+    <g transform="translate(380,50)" font-family="sans-serif" font-size="14">
+      <circle cx="0" cy="0" r="4" stroke="black" />
+
+      <rect x="0" y="0" width="20" height="50" stroke="black" fill="none" />
+      <rect x="0" y="0" width="20" height="50" stroke="blue" fill="none" transform="scale(2)" />
+      <line x1="20" y1="50" x2="40" y2="100" stroke="black" stroke-dasharray="2,2" />
+
+      <rect x="120" y="30" width="20" height="50" stroke="green" fill="none" stroke-width=3 />
+      <rect x="120" y="30" width="20" height="50" stroke="red" fill="none" stroke-width=3 transform="scale(2)" />
+      <line x1="120" y1="30" x2="240" y2="60" stroke="black" stroke-dasharray="2,2" />
+      <line x1="140" y1="80" x2="280" y2="160" stroke="black" stroke-dasharray="2,2" />
+
+      <text x="0" y="-10" text-anchor="middle">(0,0)</text>
+    </g>
+
+    <!-- 左侧原点注释 -->
+    <g transform="translate(120,50)" font-family="monospace" font-size="14">
+      <text x="0" y="15" text-anchor="start">&lt;rect x="0" y="0"</text>
+      <text x="0" y="32">
+        <tspan visibility="hidden">X</tspan>
+        <tspan>width="20" height="50" /&gt;</tspan>
+      </text>
+
+      <text x="30" y="115" text-anchor="start" fill="blue">
+        &lt;rect x="0" y="0"
+      </text>
+      <text x="30" y="132" text-anchor="start" fill="blue">
+        <tspan visibility="hidden">X</tspan>
+        <tspan>width="40" height="100" /&gt;</tspan>
+      </text>
+    </g>
+
+    <g transform="translate(110,0)">
+    	<text x="40" y="125" font-family="monospace" font-size="14">
+	      transform="scale(2)"
+	    </text>
+	    <path fill="none" stroke="black" d="M50,90 Q0,120 40,150" />
+	    <path fill="none" stroke="black" transform="rotate(-50,40,150)" d="M40,150 l5,-10 M40,150 l-5,-10" />
+    </g>
+
+    <!-- 右侧非原点注释 -->
+    <g transform="translate(500,50)" font-family="monospace" font-size="14">
+      <text x="0" y="-10" text-anchor="start" fill="green">
+        &lt;rect x="120" y="30"
+      </text>
+      <text x="0" y="7" text-anchor="start" fill="green">
+        <tspan visibility="hidden">X</tspan>
+        <tspan>width="20" height="50" stroke-width=3 /&gt;</tspan>
+      </text>
+    </g>
+
+    <g transform="translate(585,220)" font-family="monospace" font-size="14">
+      <text x="0" y="15" text-anchor="start" fill="red">
+        &lt;rect x="240" y="60"
+      </text>
+      <text x="0" y="32" fill="red">
+        <tspan visibility="hidden">X</tspan>
+        <tspan>width="40" height="100" stroke-width=6 /&gt;</tspan>
+      </text>
+    </g>
+
+    <g transform="translate(190,0)">
+    	<path fill="none" stroke="black" d="M525,70 Q600,135 550,200" />
+	    <path fill="none" stroke="black" transform="rotate(33,550,200)" d="M550,200 l5,-10 M550,200 l-5,-10" />
+	    <rect x="500" y="115" width="160" height="30" fill="#CCC"  stroke="grey" />
+	    <text x="505" y="135" font-family="monospace" font-size="14">
+	      transform="scale(2)"
+	    </text>
+    </g>
+
+
+  </svg>
+</body>
+</html>

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Demos for D3</title>
+	<link rel="stylesheet" type="text/css" href="../style/main.css">
+</head>
+<body onload="addAndSortList()">
+	<h2 class="title">插入新元素并排序</h2>
+</body>
+<script src="../js/d3.v7.js"></script>
+<script>
+	// mock a list
+	function addAndSortList() {
+		let list = ["North", "South", "West", "East"]
+		let ds = ["Jame", "Anne"]
+		// 外层容器
+		let ul = d3.select("body")
+			//插入ul元素
+			.append("ul")
+
+		// 为列表项创建空占位符
+		ul.selectAll("li")
+			// 绑定数据集
+			.data(list).enter()
+			// 根据数据集为每一个数据点添加列表项和内容
+			.append("li").text(d => d)
+		// 响应点击事件 -- 排序
+		ul.on("click", function () {
+			// 当前所有的列表元素
+			ul.selectAll("li")
+				// 动画
+				//.transition().duration(1000)
+				// 排序 -- 按照文本升序
+				.sort( (a, b) => a < b ? -1 : a == b ? 0 : 1)
+		})
+		//鼠标经过事件：添加新元素。一次性的
+		let once = false
+		ul.on("mouseenter", function() {
+			if (once) {
+				return
+			}
+			once = true
+
+			//添加元素
+			ul.insert("li", ":nth-child(3)")
+				//绑定数据集
+				.datum(ds[0])
+				.text(ds[0]).style("color", "red")
+			ul.insert("li", ":last-child")
+				//没有绑定。数据集中该值为undefined。排序在末位
+				//.datum(ds[1])
+				.text(ds[1]).style("color", "blue")
+
+			//示例输出：undefined 4 
+			//ul.selectAll("li").each((d, i) => console.log(d, i))
+		})
+
+		// 遗留问题 todo：新增和排序时，怎么加入动画效果呢？
+
+		//自动触发事件
+		setTimeout(() => ul.dispatch("mouseenter"), 2000)
+		setTimeout(() => ul.dispatch("click"), 4000)
+	}
+</script>
+</html>

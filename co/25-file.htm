@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Demos for D3</title>
+	<link rel="stylesheet" type="text/css" href="../style/main.css">
+</head>
+<body onload="init()">
+	<h2 class="title">读取外部SVG文件显示及上传到服务器</h2>
+	<svg width="600" height="300">
+	</svg>
+</body>
+<script src="../js/d3.v7.js"></script>
+<script>
+	function init() {
+		//画布
+		let svg = d3.select("svg")
+		//读取svg文件
+		d3.svg("../data/heart.svg")
+			.then(res => {
+				// res是文档： #document 
+				//console.log(res)
+				//res.firstChild=svg, 添加作为第一个元素
+				svg.insert( () => res.firstChild, ":first-child" )
+				svg.append("use")
+					.attr("href", "#heart")
+					.attr("fill", "red")
+					.attr("transform", "translate(80,80) scale(5)")
+			})
+
+		//下载 -- 另开线程，保证js绘制的图形可以捕捉到
+		setTimeout(() => {
+			//svg.call(upload)
+			upload(svg.node())
+		}, 1000)		
+	}
+
+	//上传svg到服务器
+	//注意，不要使用 -- d3.selectAll("svg")。因为绘制心形的时候引入了svg外部文件，也是包含svg标签的！！
+	function upload(el) {
+		//el得是原生DOM节点
+		//console.log(typeof el, el)
+
+		//请求数据
+		let out = new FormData()
+		let self = el
+		let fname = self.id
+		if (!fname) {
+			fname = "测试下载.svg"
+		}
+		out.set("name", fname)
+		out.set("data", self.outerHTML)
+
+		//发送请求
+		//第二个参数会触发fetch请求，参数格式：https://fetch.spec.whatwg.org/#requestinit
+		d3.json("http://localhost:8081/pot/api/test/upload",
+				{method: "POST", body: out})
+			.then(
+				res => {
+					console.log("ok", res)
+				},
+				err => {
+					console.log("err", err)
+				}
+			) //end json
+	}
+</script>
+</html>

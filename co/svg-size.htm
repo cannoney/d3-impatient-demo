@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>size demo</title>
+	<style>
+		svg {
+			background-color: #ccc;
+			margin: 10px;
+		}
+		#size_css {
+			width: 600px;
+			height: 300px;
+		}
+		#size_css text {
+			font-size: 20px;
+		}
+	</style>
+</head>
+<body>
+	<div class="main">
+		<svg id="size_svg" width=600 height=300>
+			<text x="250" y="150" font-size="20">Hello</text>
+		</svg>
+		<svg id="size_css">
+			<text x="250" y="150">Hello</text>
+		</svg>
+	</div>
+</body>
+</html>

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Demos for D3</title>
+	<link rel="stylesheet" type="text/css" href="style/main.css">
+</head>
+<body onload="setToc()">
+<h1>Demo from <i> D3 for the Impatient </i> </h1>
+<div class="main">
+	
+</div>
+
+<template id="itemFrame">
+	<div class="item" loading="lazy">
+		<span class="num"></span>
+		<!-- 懒加载：https://developer.mozilla.org/zh-CN/docs/Web/HTML/Reference/Elements/iframe#loading -->
+		<iframe loading="lazy" height="370" width="650" src="void"></iframe>
+	</div>
+</template>
+</body>
+<script>
+	function setToc() {
+		// 按照模板插入: https://developer.mozilla.org/zh-CN/docs/Web/HTML/Reference/Elements/template
+		let tmpl = document.querySelector("#itemFrame")
+		let container = document.querySelector(".main")
+
+		let bigNums = [9, 14, 19, 22, 35, 38]
+		let files = ["1-list", "2-dot", "3-line", "4-line-smooth", "5-select-key", "6-merge", "7-add-sort", "8-shared-select", "9-selection-img"
+			,"10-mouse-move", "11-highlight-spots", "12-drag", "13-bar-anime", "14-tween-tip", "15-lissajous", "16-vote", "17-symbol", "18-symbol-cm"
+			,"19-transform-img", "20-null-line", "21-curve-cm", "22-curves", "23-pie", "24-componet-cm", "25-file", "26-ticks", "27-phone-cost", "28-load-chart"
+			,"29-color", "30-heat-map", "31-outline", "32-histogram", "33-tree", "34-tree-radial", "35-tree-name", "36-treemap", "37-particles", "38-network"]
+		// 遍历数组: https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Array/forEach
+		files.forEach((d, i) => {
+			// 序号
+			//let num = i + 1
+			//文件名 num-name.htm
+			let num = +d.split('-')[0]
+			tmpl.content.querySelector("span").textContent = num
+			let clsn = ""
+			if (bigNums.includes(num)) {
+				clsn = "full"
+			}
+
+			// 模板字符串，设置url： https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Template_literals
+			let url = `./co/${d}.htm`
+			let ifm = tmpl.content.querySelector("iframe")
+			ifm.src = url
+			ifm.className = clsn
+			
+			//复制新节点
+			let clone = document.importNode(tmpl.content, true)
+
+			container.appendChild(clone)
+
+			// console.log('url', url)
+		})
+
+		//绑定双击事件：打开具体的单页面。。 快捷键Alt + <-- 返回上一页
+		document.body.addEventListener("dblclick", function (evt) {
+			// 只有双击了左上角的编号才会触发跳转
+			let target = evt.target || evt.srcElement
+			if (!target || target.className != "num") {
+				return;
+			}
+			// 新页面地址
+			let url = target.nextElementSibling.src
+			window.location.href = url
+		})
+	}
+</script>
+</html>

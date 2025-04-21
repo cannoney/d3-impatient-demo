@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Demos for D3</title>
+	<link rel="stylesheet" type="text/css" href="../style/main.css">
+</head>
+<body onload="init()">
+	<h2 class="title">力导向图：网格布局</h2>
+	<svg width="1400" height="500">
+	</svg>
+</body>
+<script src="../js/d3.v7.js"></script>
+<script>
+	async function init() {
+		//加载数据
+		let {ps, ln} = await d3.json("../data/network.json")
+
+		//洗牌。打乱顺序
+		d3.shuffle(ps)
+		d3.shuffle(ln)
+
+		//模拟
+		d3.forceSimulation(ps)
+			//中心位置
+			.force("ct", d3.forceCenter(600, 250))
+			//排斥范围
+			.force("hc", d3.forceCollide(20))
+			//相互作用，与距离平方成反比 -- 库仑定律
+			.force("many", d3.forceManyBody())
+			//粒子间的软约束。。 偏差线性增长-胡克定律
+			.force("ln", d3.forceLink(ln).distance(55).id(d=>d.id))
+			.on("end", () => {
+				draw(ps, ln)
+			})
+	}
+
+	function draw(ps, ln) {
+		//比例尺：颜色
+		let sc = d3.scaleOrdinal(d3.schemePastel1)
+
+		//绘制
+		let g = d3.select("svg").append("g")
+			// .attr("transform", "translate(625, 30)")
+
+		//节点 -- 直线
+		g.append("g").attr("id", "link")
+			.selectAll("line").data(ln).enter().append("line")
+				.attr("stroke", "black")
+				.attr("x1", d => d.source.x).attr("y1", d => d.source.y)
+				.attr("x2", d => d.target.x).attr("y2", d => d.target.y)
+
+		//节点
+		g.append("g").attr("id", "node")
+			.selectAll("circle").data(ps).enter().append("circle")
+				.attr("r", "15")
+				.attr("fill", (d,i) => sc(i))
+				.attr("cx", d => d.x).attr("cy", d => d.y)
+
+		//文本 -- 叶子节点
+		g.append("g").attr("id", "txt")
+			.selectAll("text").data(ps).enter().append("text")
+				.style("font-size", 14)
+				.style("text-anchor", "middle")
+				.attr("x", d => d.x).attr("y", d => d.y + 6)
+				.text(d => d.id)
+	}
+</script>
+</html>

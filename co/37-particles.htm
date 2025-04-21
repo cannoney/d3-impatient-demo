@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Demos for D3</title>
+	<link rel="stylesheet" type="text/css" href="../style/main.css">
+</head>
+<body onload="init()">
+	<h2 class="title">模拟粒子运动</h2>
+	<svg width="600" height="300">
+	</svg>
+</body>
+<script src="../js/d3.v7.js"></script>
+<script>
+	function init() {
+		//(x,y)=位置。(vx,vy)=速度
+		let ps = [ { x: 350, y: 150, vx: 0, vy: 1 },
+		 						{ x: 250, y: 150, vx: 0, vy: -1 } ];
+    let ln = [ { index: 0, source: ps[0], target: ps[1] } ];
+
+    let colors = ["red", "blue"]
+
+    let svg = d3.select("svg")
+    svg.selectAll("circle").data(ps).enter().append("circle")
+    	.attr("r", "10")
+    	.attr("fill", (d, i) => colors[i])
+    	.attr("cx", d => d.x).attr("cy", d => d.y)
+    
+    d3.forceSimulation( ps )
+			.alphaDecay( 0 ).alphaMin( -1 ).velocityDecay( 0 )
+			.force("ln", d3.forceLink(ln).distance(50).strength(0.01))
+			.on( "tick", () => {
+				svg.selectAll("circle")
+					.attr("cx", d => d.x).attr("cy", d => d.y)
+			});
+	}
+</script>
+</html>

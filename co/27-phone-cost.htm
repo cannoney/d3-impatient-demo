@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Demos for D3</title>
+	<link rel="stylesheet" type="text/css" href="../style/main.css">
+</head>
+<body onload="init()">
+	<h2 class="title">电话成本控制图：线性和对数比例尺</h2>
+	<svg width="600" height="300">
+	</svg>
+</body>
+<script src="../js/d3.v7.js"></script>
+<script>
+	async function init() {
+		//画布
+		let svg = d3.select("svg")
+
+		//加载数据
+		let res = await d3.text("../data/cost.csv")
+		//格式数据，转为数组
+		let data = d3.csvParseRows(res, d => [+d[0], +d[1]])
+		
+		//绘制大图：线性
+		svg.append("g")
+			.attr("transform", "translate(50, 20)")
+			.call(draw, data, d3.scaleLinear(), d3.scaleLinear(), 500, 250)
+			.select(".curve").attr("stroke", "red")
+		//小图：对数
+		svg.append("g")
+			.attr("transform", "translate(220, 20)")
+			.call(draw, data, d3.scaleLinear(), d3.scaleLog(), 320, 150)
+			.select(".curve").attr("stroke", "blue")
+	}
+
+	//绘制带坐标轴的曲线图
+	function draw(sel, data, scX, scY, width, height) {
+		//比例尺
+		//nice：优化定义域：starts and ends on nice round values.
+		scX = scX.domain(d3.extent(data, d => d[0])).nice()
+			.range([0, width])
+		scY = scY.domain(d3.extent(data, d => d[1])).nice()
+			.range([height, 0])
+		//按比例尺缩放数据
+		data = data.map(d => [scX(d[0]), scY(d[1])])
+
+		//绘制线
+		sel.append("path")
+			.classed("curve", true)
+			.attr("fill", "none")
+			.attr("d", d3.line()(data))
+		//X轴
+		sel.append("g").classed("axisx", true)
+			//ticks(count, format)  默认含千分位。。 "d"：是 D3 的 刻度格式化指令，decimal notation, rounded to integer
+			//https://d3js.org/d3-format#locale_format
+			.call(d3.axisBottom(scX).ticks(10, "d"))
+			//或者横坐标是时间格式年
+			// .call( d3.axisBottom(scX).ticks(10).tickFormat(d3.timeFormat("%Y")) ) 
+			.attr("transform", `translate(0, ${height})`)
+		//Y轴
+		sel.append("g")
+			.call(d3.axisLeft(scY))
+	}
+</script>
+</html>

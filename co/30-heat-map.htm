@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Demos for D3</title>
+	<link rel="stylesheet" type="text/css" href="../style/main.css">
+</head>
+<body onload="init()">
+	<h2 class="title">热力图。数量会瞬时激增，用canvas更好</h2>
+	<canvas>
+	</canvas>
+</body>
+<script src="../js/d3.v7.js"></script>
+<script>
+	function init() {
+		//部分曼德勃罗集合的热力图 Mandelbrot 
+		//https://zhuanlan.zhihu.com/p/474913663
+		//https://zhuanlan.zhihu.com/p/60569964
+
+		//配置参数
+		//画布大小
+		let pxX = 600, pxY = 300
+		//集合迭代的最大步骤数
+		let maxIter = 2000
+		//冗余区域
+		let x0 = -1.31, x1 = -0.845, y0 = 0.2, y1 = 0.45
+
+		//比例尺
+		//像素坐标，映射到平面位置
+		let scX = d3.scaleLinear().domain([0, pxX]).range([x0, x1]),
+			scY = d3.scaleLinear().domain([0, pxY]).range([y1, y0])
+		//迭代次数映射颜色
+		let	scC = d3.scaleLinear().domain([0,10,23,35,55,1999,2000])
+				.range( ["white","red","orange","yellow","lightyellow","white","darkgrey"] )
+
+		//曼德勃罗迭代
+		const mandelbrot = (x, y) => {
+			let u=0, v=0, k=0;
+			//迭代点x+iy，直至到原点的距离为2
+			for( k=0; k<maxIter && (u*u + v*v)<4; k++ ) {
+				let t = u*u - v*v + x
+				v = 2*u*v + y
+				u = t
+			}
+			return k
+		}
+
+		//绘制
+		//canvas画布
+		let ctx = d3.select("canvas")
+			.attr("width", pxX).attr("height", pxY)
+			.node().getContext("2d")
+
+		//双循环遍历
+		for( let i=0; i<pxX; i++ ) {
+			for( let j=0; j<pxY; j++ ) {
+				let d = mandelbrot( scX(i), scY(j) )
+				ctx.fillStyle = scC( d )
+				//绘制像素为1的实心矩阵
+				ctx.fillRect( i, j, 1, 1 )
+			}
+		}
+	}
+</script>
+</html>

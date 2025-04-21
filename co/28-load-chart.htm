@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Demos for D3</title>
+	<link rel="stylesheet" type="text/css" href="../style/main.css">
+</head>
+<body onload="init()">
+	<h2 class="title">服务器负载图：时间序列图和离散颜色图</h2>
+	<svg width="600" height="300">
+	</svg>
+</body>
+<script src="../js/d3.v7.js"></script>
+<script>
+	async function init() {
+		//画布
+		let svg = d3.select("svg")
+
+		//加载数据：timestamp,load=08:01:00,29  默认为字符串
+		let res = await d3.csv("../data/load.csv")
+		//格式化数据
+		let data = res.map(d => { 
+				return {
+					//格式化时间，解析字符串 - 时分秒
+					ts: d3.utcParse("%H:%M:%S")(d.timestamp), 
+					val: +d.load
+				}
+			})
+		//console.log(res, data)
+
+		//比例尺
+		//X轴。时间
+		let scX = d3.scaleUtc()
+			.domain( d3.extent(data, d=>d.ts) ).nice()
+			.range([50, 550])
+		//Y轴。百分比
+		let scY = d3.scaleLinear()
+			.domain([0, 100]).range([250, 50])
+		//固定阈值分配颜色：<35=空闲=green; >75=过载=red
+		let scThc = d3.scaleThreshold()
+			.domain([35, 75]).range(["green", "orange", "red"])
+
+		//绘制
+		//转换为数据对，作为线段的起止点
+		data = d3.pairs(data, (src, dst) => {
+			return {
+				x1: scX(src.ts), 
+				y1: scY(src.val), 
+				x2: scX(dst.ts), 
+				y2: scY(dst.val), 
+				color: scThc( (src.val + dst.val) / 2 )
+			}
+		})
+		
+		//用直线来绘制曲线。。 原d3.line()是一个整体（path），只能使用单色。
+		//连续的两个作为一对点坐标来绘制直线，其实也是path的绘制过程：moveTo+lineTo
+		//这样的方式每个线段就是一个节点，可以独立设置样式了
+		let lines = svg.append("g").attr("id", "lines")
+				.selectAll("line").data(data).enter().append("line")
+				.attr("x1", d => d.x1).attr("y1", d => d.y1)
+				.attr("x2", d => d.x2).attr("y2", d => d.y2)
+				.attr("stroke", d => d.color)
+
+		//坐标轴
+		//Y轴
+		svg.append("g").attr("id", "ay")
+			.attr("transform", "translate(50, 0)")
+			.call(d3.axisLeft(scY))
+		//X轴
+		svg.append("g").attr("id", "ax")
+			.attr("transform", "translate(0, 250)")
+			.call(d3.axisBottom(scX)
+						//显示的时间格式 - 时分
+						.tickFormat(d3.utcFormat("%H:%M"))
+						//刻度间隔：每隔十分钟
+						.ticks(d3.utcMinute.every(10))
+					)
+
+		//鼠标经过，显示时间及负载值
+		let txt = svg//.attr("cursor", "none")
+			.append("text").attr("id", "txt")
+				.attr("x", 150).attr("y", 39)
+				.attr("fill", "#f0f")
+				.classed("label bg", true)
+		//在曲线上绑定事件
+		//增加线条的高亮和文本对应
+		let focusedLine = null
+		lines
+			.on("mousemove", function (evt) {
+				if (focusedLine) {
+					focusedLine.attr("stroke-width", 1)
+						.classed("focus", false)
+				}
+
+				//坐标
+				let [x, y] = d3.pointer(evt, this)
+				txt.text(
+						//invert 转换为数据集
+						d3.utcFormat("%H:%M:%S")(scX.invert(x)) + " | " + d3.format(">2d")(scY.invert(y)) 
+					)
+
+				focusedLine = d3.select(evt.target)
+					.attr("stroke-width", 4)
+					.classed("focus", true)
+			})
+	}
+</script>
+</html>

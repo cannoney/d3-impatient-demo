@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Demos for D3</title>
+	<link rel="stylesheet" type="text/css" href="../style/main.css">
+</head>
+<body onload="updateSet()">
+	<h2 class="title">点击更新图表：根据key值绑定数据</h2>
+	<svg width="600" height="300" />
+</body>
+<script src="../js/d3.v7.js"></script>
+<script>
+	// update data by key
+	function updateSet() {
+		//数据 -- 只更新部分数据
+		let ds1 = [["North", 1], ["South", 4], ["West", 3], ["East", 2]]
+		let ds2 = [["South", 2], ["East", 4]]
+
+		//比例尺
+		let scX = d3.scaleLinear().domain([0, 6]).range([50, 500])
+		let scY = d3.scaleLinear().domain([0, 4]).range([50, 300])
+
+		// 外层容器
+		let svg = d3.select("svg")
+
+		//文本
+		svg.selectAll("text")
+			.data(ds1).enter()
+			.append("text")
+				.attr("x", 20)
+				.attr("y", (d, i) => scY(i))
+				.text(d => d[0])
+		//圆点
+		svg.selectAll("circle")
+			.data(ds1).enter()
+			.append("circle")
+				.attr("r", 5)
+				.attr("fill", "red")
+				.attr("cx", d => scX(d[1]))
+				.attr("cy", (d, i) => scY(i) - 5)
+		// 响应点击事件
+		svg.on("click", function () {
+			//选中所有的圆点，按名称绑定新数据源
+			let circles = svg.selectAll("circle")
+				.data(ds2, d => d[0])
+
+			//匹配的更新圆点位置
+			circles.transition().duration(1000)
+				.attr("cx", d => scX(d[1]))
+
+			//未匹配的变更颜色
+			circles.exit()
+				.attr("fill", "blue")
+		})
+
+
+		//2秒后自动点击
+		setTimeout(() => svg.dispatch("click"), 2000)
+	}
+</script>
+</html>

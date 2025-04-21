@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Demos for D3</title>
+	<link rel="stylesheet" type="text/css" href="../style/main.css">
+</head>
+<body onload="init()">
+	<h2 class="title">平滑地周期更新投票模型</h2>
+	<svg width="600" height="300">
+		<g transform="translate(150, 0)"></g>
+	</svg>
+</body>
+<script src="../js/d3.v7.js"></script>
+<script>
+	//投票模型： https://mathworld.wolfram.com/VoterModel.html
+	function init() {
+		//参数
+		let n = 30, n2 = n * n, w = 300 / n, dt = 3000
+
+		let nrange = d3.range(n2)
+		
+		//模拟数据
+		let data = nrange.map(d => { return {x: d%n, y: d/n | 0, val: Math.random()} })
+
+		//比例尺
+		let sc = d3.scaleQuantize()
+			.range(["white", "red", "black"])
+
+		//画布
+		let svg = d3.select("svg>g")
+
+		//绘制矩形
+		svg.selectAll("rect").data(data).enter().append("rect")
+			.attr("x", d => w * d.x).attr("y", d => w * d.y)
+			.attr("width", w - 1).attr("height", w - 1)
+			.attr("fill", d => sc(d.val))
+
+		//更新数据
+		let nbs = [ [0,1], [0,-1], [ 1,0], [-1, 0],
+			[1,1], [1,-1], [-1,1], [-1,-1] ]
+		let k = nbs.length
+		const update = () => {
+			//洗牌 - 随机顺序
+			d3.shuffle(nrange).map(i => {
+				let nb = nbs[k * Math.random() | 0]
+				let x = (data[i].x + nb[0] + n) % n
+				let y = (data[i].y + nb[1] + n) % n
+
+				data[i].val = data[y * n + x].val
+			})
+		}
+
+		//定时更新
+		d3.interval(() => {
+			update()
+
+			svg.selectAll("rect").data(data)
+				.transition().duration(dt).delay((d, i) => 0.25*i*dt/n2)
+				.attr("fill", d => sc(d.val))
+		}, dt)
+
+	}
+</script>
+</html>
